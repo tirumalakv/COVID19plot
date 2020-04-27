@@ -15,7 +15,7 @@ import numpy as np
 country = 'India'
 website = 'https://www.worldometers.info/coronavirus/'
 #Add correct path to your driver here before running
-driver = webdriver.Chrome('/your-path-to-driver/chromedriver')
+driver = webdriver.Chrome('your-path-to-webdriver/chromedriver')
 
 
 driver.get(website)
@@ -63,25 +63,32 @@ dataC.columns = listofcols
 dataC.rename_axis("Countries", axis='index', inplace=True)
 dataC = dataC.apply(lambda x: pd.to_numeric(x.astype(str).str.replace(',',''), errors='coerce'))
 dataC.fillna(0)
-print(dataC)
 
-     
 driver.quit()
 
+
+# Drops the outliers where % detection is above 60% to make figure look better
+dataC['colY']=(dataC['Total_cases']/dataC['Total_tests']*100)
+dataC.drop(dataC[dataC.colY>60].index, inplace=True)
+     
+
 # Random colors for countries
-colors=cm.rainbow(np.random.rand(211))
+colors=cm.rainbow(np.random.rand(len(dataC['colY'])))
 
 
 x=dataC['Tests_per_million']
 y=(dataC['Total_cases']/dataC['Total_tests']*100)
+
 country=dataC.index
 size = dataC['Total_cases']
+
 
 #Plot the scatter plot
 
 plt.figure(figsize=(6, 3), dpi=800)
-plt.scatter(x, y, color=colors, s=size*800/max(size), alpha=0.7)
 
+plt.scatter(x, y, color=colors, s=size*800/max(size), alpha=0.7)
+    
 plt.xscale('log')
 plt.xlabel('Tests Per M capita (Tests/1Million Population) - log scale', fontsize=8)
 plt.ylabel('Positive cases per 100 tests\n (%+ve for tested cases)', fontsize=8)
@@ -92,12 +99,8 @@ for name in names:
     plt.annotate(s=name, xy=(x.loc[name], y.loc[name]), fontsize=6)
 
 #Save the plot
-plt.savefig('COVID19_16_Apr.png', dpi=800, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('COVID19_26_Apr.png', dpi=800, bbox_inches='tight', pad_inches=0.1)
 
 #Display the plot   
 plt.show()
-
-
-
-
 
